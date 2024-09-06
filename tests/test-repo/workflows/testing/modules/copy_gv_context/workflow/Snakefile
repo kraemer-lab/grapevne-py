@@ -1,0 +1,32 @@
+"""Copy file from one directory to another.
+
+This version demonstrates use of Helper as a context manager.
+"""
+configfile: "config/config.yaml"
+
+from grapevne.helpers import grapevne_helper
+import shutil
+
+
+with grapevne_helper(globals()):
+
+    rule copy:
+        input:
+            filename=input(params("filename")),
+            dummy_script=script("dummy.sh"),
+            dummy_resource=resource("dummy.txt"),
+        output:
+            filename=output(params("filename")),
+        log:
+            log("copy.log"),
+        run:
+            shutil.copy(input.filename, output.filename)
+
+    rule _test:
+        input:
+            # Check that the input file has been copied
+            infile=input(params("filename")),
+            outfile=output(params("filename")),
+        run:
+            # Verify file contents
+            assert open(input.infile).read() == open(input.outfile).read()

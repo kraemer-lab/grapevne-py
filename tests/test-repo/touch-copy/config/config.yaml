@@ -1,0 +1,20 @@
+"input_namespace": null
+"output_namespace": "copy"
+"touch":
+  "name": "touch"
+  "type": "module"
+  "snakefile": "../../workflows/testing/sources/touch/workflow/Snakefile"
+  "config":
+    "input_namespace": null
+    "output_namespace": "touch"
+    "params":
+      "Filename": "touch"
+"copy":
+  "name": "copy"
+  "type": "module"
+  "snakefile": "../../workflows/testing/modules/copy/workflow/Snakefile"
+  "config":
+    "input_namespace": "touch"
+    "output_namespace": "copy"
+    "params":
+      "filename": "touch"

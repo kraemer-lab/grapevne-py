@@ -1,0 +1,21 @@
+"""Create an empty file"""
+configfile: "config/config.yaml"
+
+from grapevne.helpers import grapevne_helper
+from pathlib import Path
+
+with grapevne_helper(globals()):
+
+    rule touch:
+        output:
+            filename = output(params("Filename"))
+        params:
+            outdir = output(),
+        run:
+            Path(params.outdir).mkdir(parents=True, exist_ok=True)
+            Path(output.filename).touch()
+
+    rule _test:
+        input:
+            # Confirm that the output target file has been created
+            output(params("Filename")),

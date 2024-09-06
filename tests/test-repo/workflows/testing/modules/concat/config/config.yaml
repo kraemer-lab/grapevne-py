@@ -1,0 +1,6 @@
+input_namespace:
+  port1: port1
+  port2: port2
+output_namespace: out
+params:
+  filename: data.csv

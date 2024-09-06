@@ -1,0 +1,15 @@
+configfile: "config/config.yaml"
+
+module touch:
+    snakefile:
+        config["touch"]["snakefile"]
+    config:
+        config["touch"]["config"]
+use rule * from touch exclude _test as touch_* 
+
+module copy:
+    snakefile:
+        config["copy"]["snakefile"]
+    config:
+        config["copy"]["config"]
+use rule * from copy exclude _test as copy_* 

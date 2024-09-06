@@ -1,0 +1,31 @@
+"""Concatenate the contents of two files from different ports and write to a single file."""
+configfile: "config/config.yaml"
+
+from grapevne.helpers import grapevne_helper
+import shutil
+
+with grapevne_helper(globals()):
+
+    rule concat:
+        input:
+            filename_port1=input(params("filename"), "port1"),
+            filename_port2=input(params("filename"), "port2"),
+        output:
+            filename=output(params("filename")),
+        log:
+            log("copy.log"),
+        run:
+            with open(input.filename_port1) as f1, open(input.filename_port2) as f2, open(output.filename, "w") as out:
+                out.write(f1.read().strip())
+                out.write('\n')
+                out.write(f2.read().strip())
+
+    rule _test:
+        input:
+            # Check that the input file has been copied
+            filename_port1=input(params("filename"), "port1"),
+            filename_port2=input(params("filename"), "port2"),
+            outfile=output(params("filename")),
+        run:
+            # Verify that the file contents have been concatenated
+            assert open(input.outfile).read() == open(input.filename_port1).read().strip() + '\n' + open(input.filename_port2).read().strip()

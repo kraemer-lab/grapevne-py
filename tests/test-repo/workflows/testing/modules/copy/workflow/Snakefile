@@ -1,0 +1,31 @@
+"""Copy file from one directory to another.
+
+This file also demonstrates the use of the `init`, `input`, `output`, `script`, `resource`, `log` and `params` functions, albeit with dummy inputs for `script` and `resource`, which are not required for the actual copy operation.  There is a single input port.
+"""
+configfile: "config/config.yaml"
+
+from grapevne.helpers import *
+import shutil
+
+init(workflow, config)
+
+rule copy:
+    input:
+        filename=input(params("filename")),
+        dummy_script=script("dummy.sh"),
+        dummy_resource=resource("dummy.txt"),
+    output:
+        filename=output(params("filename")),
+    log:
+        log("copy.log"),
+    run:
+        shutil.copy(input.filename, output.filename)
+
+rule _test:
+    input:
+        # Check that the input file has been copied
+        infile=input(params("filename")),
+        outfile=output(params("filename")),
+    run:
+        # Verify file contents
+        assert open(input.infile).read() == open(input.outfile).read()
