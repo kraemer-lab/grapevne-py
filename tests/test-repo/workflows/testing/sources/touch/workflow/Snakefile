@@ -1,7 +1,7 @@
 """Create an empty file"""
 configfile: "config/config.yaml"
 
-from grapevne.helpers import grapevne_helper
+from grapevne_helper import grapevne_helper
 from pathlib import Path
 
 with grapevne_helper(globals()):

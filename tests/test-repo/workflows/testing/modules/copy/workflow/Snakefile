@@ -4,7 +4,7 @@ This file also demonstrates the use of the `init`, `input`, `output`, `script`, 
 """
 configfile: "config/config.yaml"
 
-from grapevne.helpers import *
+from grapevne_helper import *
 import shutil
 
 init(workflow, config)

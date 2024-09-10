@@ -4,7 +4,7 @@ This version demonstrates use of the grapevne helper using the object instance.
 """
 configfile: "config/config.yaml"
 
-from grapevne.helpers import Helper
+from grapevne_helper import Helper
 import shutil
 
 gv = Helper(workflow, config)
