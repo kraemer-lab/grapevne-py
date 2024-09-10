@@ -4,7 +4,7 @@ This version demonstrates use of the helper by importing function names ('script
 """
 configfile: "config/config.yaml"
 
-from grapevne.helpers import *
+from grapevne_helper import *
 import shutil
 
 init(workflow, config)

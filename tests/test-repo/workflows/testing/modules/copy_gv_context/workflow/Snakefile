@@ -4,7 +4,7 @@ This version demonstrates use of Helper as a context manager.
 """
 configfile: "config/config.yaml"
 
-from grapevne.helpers import grapevne_helper
+from grapevne_helper import grapevne_helper
 import shutil
 
 
