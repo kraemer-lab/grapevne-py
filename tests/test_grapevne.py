@@ -4,8 +4,13 @@ from pathlib import Path
 import pytest
 
 
+class Workflow:
+    def __init__(self, config):
+        self.config = config
+
+
 def test_script():
-    init(None, None)
+    init()
     with mock.patch(
         "grapevne.helpers.helpers.Helper._workflow_path",
         lambda self, path: Path("workflows") / path,
@@ -14,7 +19,7 @@ def test_script():
 
 
 def test_resource():
-    init(None, None)
+    init()
     with mock.patch(
         "grapevne.helpers.helpers.Helper._workflow_path",
         lambda self, path: Path("workflows") / path,
@@ -23,63 +28,63 @@ def test_resource():
 
 
 def test_input_single():
-    config = {
+    workflow = Workflow({
         "input_namespace": "in",
-    }
-    init(None, config)
+    })
+    init(workflow)
     assert Path(input("infile.txt")) == Path("results/in/infile.txt")
 
 
 def test_input_multi():
-    config = {
+    workflow = Workflow({
         "input_namespace": {
             "port1": "in1",
             "port2": "in2",
         },
-    }
-    init(None, config)
+    })
+    init(workflow)
     assert Path(input("infile1.txt", "port1")) == Path("results/in1/infile1.txt")
     assert Path(input("infile2.txt", "port2")) == Path("results/in2/infile2.txt")
 
 
 def test_output():
-    config = {
+    workflow = Workflow({
         "output_namespace": "out",
-    }
-    init(None, config)
+    })
+    init(workflow)
     assert Path(output("outfile.txt")) == Path("results/out/outfile.txt")
 
 
 def test_log():
-    init(None, None)
+    init()
     assert log("rule.log") == "logs/rule.log"
 
 
 def test_env():
-    init(None, None)
+    init()
     assert env("conda.yaml") == "envs/conda.yaml"
 
 
 def test_params():
-    config = {
+    workflow = Workflow({
         "params": {
             "param1": "value1",
             "param2": {
                 "param3": "value3",
             },
         },
-    }
-    init(None, config)
+    })
+    init(workflow)
     assert params("param1") == "value1"
     assert params("param2", "param3") == "value3"
 
 
 def test_params_notfound():
-    config = {
+    workflow = Workflow({
         "params": {
             "param1": "value1",
         },
-    }
-    init(None, config)
+    })
+    init(workflow)
     with pytest.raises(ValueError):
         params("param2")

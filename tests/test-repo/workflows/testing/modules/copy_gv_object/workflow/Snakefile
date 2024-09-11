@@ -7,7 +7,7 @@ configfile: "config/config.yaml"
 from grapevne_helper import Helper
 import shutil
 
-gv = Helper(workflow, config)
+gv = Helper(workflow)
 
 rule copy:
     input:
