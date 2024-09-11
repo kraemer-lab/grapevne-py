@@ -24,5 +24,7 @@ jobs:
         run: |
           uv tool install nox
       - name: Run tests
+        env:
+          NOX_DEFAULT_VENV_BACKEND=uv
         run: |
           uv tool run nox
