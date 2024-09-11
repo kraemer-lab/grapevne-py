@@ -19,10 +19,16 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: |
+            3.9
+            3.10
+            3.11
+            3.12
       - name: Install the latest version of uv
         uses: astral-sh/setup-uv@v2
-      - name: Install Python
-        run: uv python install 3.9 3.10 3.11 3.12
       - name: Install nox
         run: |
           uv tool install nox
