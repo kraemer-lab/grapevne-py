@@ -19,9 +19,9 @@ except ImportError:
 class Helper:
     snakemake_version = Version(snakemake.__version__)
 
-    def __init__(self, workflow=None, config=None):
+    def __init__(self, workflow=None):
         self.workflow = workflow
-        self.config = config
+        self.config = workflow.config if workflow else None
 
     def _check_config(self):
         if self.config is None:
@@ -148,9 +148,7 @@ class Helper:
 @contextmanager
 def grapevne_helper(globals_dict):
     workflow = globals_dict.get("workflow", None)
-    config = globals_dict.get("config", None)
-
-    gv = Helper(workflow, config)
+    gv = Helper(workflow)
 
     globals_dict["script"] = gv.script
     globals_dict["resource"] = gv.resource
@@ -175,9 +173,9 @@ def grapevne_helper(globals_dict):
 _helper = Helper()
 
 
-def init(workflow=None, config=None):
+def init(workflow=None):
     _helper.workflow = workflow
-    _helper.config = config
+    _helper.config = workflow.config if workflow else None
     _helper.snakemake_version = Version(snakemake.__version__)
 
 
