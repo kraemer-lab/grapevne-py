@@ -1,4 +1,4 @@
-from grapevne.helpers import init, script, resource, input, output, log, env, params
+from grapevne.helpers import init, script, resource, input, output, log, env, param, params
 from unittest import mock
 from pathlib import Path
 import pytest
@@ -63,6 +63,31 @@ def test_log():
 def test_env():
     init()
     assert env("conda.yaml") == "envs/conda.yaml"
+
+
+def test_param():
+    workflow = Workflow({
+        "params": {
+            "param1": "value1",
+            "param2": {
+                "param3": "value3",
+            },
+        },
+    })
+    init(workflow)
+    assert param("param1") == "value1"
+    assert param("param2", "param3") == "value3"
+
+
+def test_param_notfound():
+    workflow = Workflow({
+        "params": {
+            "param1": "value1",
+        },
+    })
+    init(workflow)
+    with pytest.raises(ValueError):
+        param("param2")
 
 
 def test_params():
