@@ -88,7 +88,10 @@ class Helper:
         elif isinstance(input_namespace, dict):
             indir = self.config["input_namespace"].get(port, None)
         else:
-            raise ValueError("Snakemake config error - Input namespace type not recognised")
+            raise ValueError(
+                "Snakemake config error - "
+                "Input namespace type not recognised"
+            )
         if not indir:
             raise ValueError("Attempting to read from a non-configured input port")
         if path:
@@ -130,7 +133,7 @@ class Helper:
             *args:  The path to the parameter in the configuration
                     Example: params("foo", "bar") will return the value of
                         config["params"]["foo"]["bar"]
-                    If no arguments are provided, the entire params dictionary is returned
+                    If no arguments are provided, return the entire params dictionary
         """
         self._check_config()
         if len(args) == 0:
@@ -144,6 +147,11 @@ class Helper:
             value = value.get(arg, {})
         return value
 
+    # Alias function - 'params' is the Snakefile directive, but 'param' is more
+    # intuitive and consistent with other helper functions.
+    def param(self, *args):
+        return self.params(*args)
+
 
 @contextmanager
 def grapevne_helper(globals_dict):
@@ -156,6 +164,7 @@ def grapevne_helper(globals_dict):
     globals_dict["output"] = gv.output
     globals_dict["log"] = gv.log
     globals_dict["env"] = gv.env
+    globals_dict["param"] = gv.param
     globals_dict["params"] = gv.params
 
     try:
@@ -212,6 +221,10 @@ def log(path):
 def env(path):
     """Return the path to an environment file"""
     return _helper.env(path)
+
+
+def param(*args):
+    return _helper.param(*args)
 
 
 def params(*args):

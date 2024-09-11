@@ -7,4 +7,5 @@ from .helpers import input  # noqa: F401
 from .helpers import output  # noqa: F401
 from .helpers import log  # noqa: F401
 from .helpers import env  # noqa: F401
+from .helpers import param  # noqa: F401
 from .helpers import params  # noqa: F401
