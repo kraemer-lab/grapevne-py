@@ -89,8 +89,7 @@ class Helper:
             indir = self.config["input_namespace"].get(port, None)
         else:
             raise ValueError(
-                "Snakemake config error - "
-                "Input namespace type not recognised"
+                "Snakemake config error - Input namespace type not recognised"
             )
         if not indir:
             raise ValueError("Attempting to read from a non-configured input port")
