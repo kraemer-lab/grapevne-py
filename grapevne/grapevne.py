@@ -53,7 +53,7 @@ def _get_versioned_module(
 
 
 def install(version):
-    if not version:
+    if not version or (isinstance(version, str) and version == "current"):
         # Return the current module
         logging.info("No version requirements specified.")
         return sys.modules[__name__.split(".")[0]]
