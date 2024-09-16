@@ -1,15 +1,15 @@
 [project]
 name = "grapevne"
-version = "0.1.1"
 description = "Python library for grapevne snakemake support"
 readme = "README.md"
 requires-python = ">=3.9"
 dependencies = [
     "packaging>=24.1",
 ]
+dynamic = ["version"]
 
 [build-system]
-requires = ["setuptools"]
+requires = ["setuptools", "setuptools_scm"]
 build-backend = "setuptools.build_meta"
 
 [tool.uv]
@@ -17,4 +17,9 @@ dev-dependencies = [
     "nox>=2024.4.15",
     "pytest>=8.3.2",
     "ruff>=0.6.3",
+    "setuptools-scm>=8.1.0",
 ]
+
+[tool.setuptools_scm]
+version_scheme = "python-simplified-semver"
+write_to = "grapevne/version.py"

@@ -164,3 +164,4 @@ cython_debug/
 .snakemake
 **/results/out
 **/logs
+grapevne/version.py

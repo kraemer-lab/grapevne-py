@@ -1,4 +1,14 @@
-from grapevne.helpers import init, script, resource, input, output, log, env, param, params
+from grapevne.helpers import (
+    init,
+    script,
+    resource,
+    input,
+    output,
+    log,
+    env,
+    param,
+    params,
+)
 from unittest import mock
 from pathlib import Path
 import pytest
@@ -28,29 +38,35 @@ def test_resource():
 
 
 def test_input_single():
-    workflow = Workflow({
-        "input_namespace": "in",
-    })
+    workflow = Workflow(
+        {
+            "input_namespace": "in",
+        }
+    )
     init(workflow)
     assert Path(input("infile.txt")) == Path("results/in/infile.txt")
 
 
 def test_input_multi():
-    workflow = Workflow({
-        "input_namespace": {
-            "port1": "in1",
-            "port2": "in2",
-        },
-    })
+    workflow = Workflow(
+        {
+            "input_namespace": {
+                "port1": "in1",
+                "port2": "in2",
+            },
+        }
+    )
     init(workflow)
     assert Path(input("infile1.txt", "port1")) == Path("results/in1/infile1.txt")
     assert Path(input("infile2.txt", "port2")) == Path("results/in2/infile2.txt")
 
 
 def test_output():
-    workflow = Workflow({
-        "output_namespace": "out",
-    })
+    workflow = Workflow(
+        {
+            "output_namespace": "out",
+        }
+    )
     init(workflow)
     assert Path(output("outfile.txt")) == Path("results/out/outfile.txt")
 
@@ -66,50 +82,58 @@ def test_env():
 
 
 def test_param():
-    workflow = Workflow({
-        "params": {
-            "param1": "value1",
-            "param2": {
-                "param3": "value3",
+    workflow = Workflow(
+        {
+            "params": {
+                "param1": "value1",
+                "param2": {
+                    "param3": "value3",
+                },
             },
-        },
-    })
+        }
+    )
     init(workflow)
     assert param("param1") == "value1"
     assert param("param2", "param3") == "value3"
 
 
 def test_param_notfound():
-    workflow = Workflow({
-        "params": {
-            "param1": "value1",
-        },
-    })
+    workflow = Workflow(
+        {
+            "params": {
+                "param1": "value1",
+            },
+        }
+    )
     init(workflow)
     with pytest.raises(ValueError):
         param("param2")
 
 
 def test_params():
-    workflow = Workflow({
-        "params": {
-            "param1": "value1",
-            "param2": {
-                "param3": "value3",
+    workflow = Workflow(
+        {
+            "params": {
+                "param1": "value1",
+                "param2": {
+                    "param3": "value3",
+                },
             },
-        },
-    })
+        }
+    )
     init(workflow)
     assert params("param1") == "value1"
     assert params("param2", "param3") == "value3"
 
 
 def test_params_notfound():
-    workflow = Workflow({
-        "params": {
-            "param1": "value1",
-        },
-    })
+    workflow = Workflow(
+        {
+            "params": {
+                "param1": "value1",
+            },
+        }
+    )
     init(workflow)
     with pytest.raises(ValueError):
         params("param2")

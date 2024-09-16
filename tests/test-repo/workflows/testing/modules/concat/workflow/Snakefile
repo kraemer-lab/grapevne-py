@@ -1,8 +1,11 @@
 """Concatenate the contents of two files from different ports and write to a single file."""
 configfile: "config/config.yaml"
 
-from grapevne_helper import grapevne_helper
+from grapevne_helper import import_grapevne
 import shutil
+
+grapevne = import_grapevne(workflow)
+globals().update(vars(grapevne))
 
 with grapevne_helper(globals()):
 

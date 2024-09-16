@@ -4,11 +4,12 @@ This version demonstrates use of Helper as a context manager.
 """
 configfile: "config/config.yaml"
 
-from grapevne_helper import grapevne_helper
+from grapevne_helper import import_grapevne
 import shutil
 
+grapevne = import_grapevne(workflow)
 
-with grapevne_helper(globals()):
+with grapevne.grapevne_helper(globals()):
 
     rule copy:
         input:

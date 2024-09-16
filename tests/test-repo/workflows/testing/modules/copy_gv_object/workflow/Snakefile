@@ -4,10 +4,11 @@ This version demonstrates use of the grapevne helper using the object instance.
 """
 configfile: "config/config.yaml"
 
-from grapevne_helper import Helper
+from grapevne_helper import import_grapevne
 import shutil
 
-gv = Helper(workflow)
+grapevne = import_grapevne(workflow)
+gv = grapevne.Helper(workflow)
 
 rule copy:
     input:
