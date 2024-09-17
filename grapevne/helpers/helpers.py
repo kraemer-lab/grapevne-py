@@ -57,10 +57,19 @@ class Helper:
         return snakemake.remote.AUTO.remote(path)
 
     def _get_remote_file_path_snakemake_8(self, path):
-        return snakemake.storage(path)
+        return self.workflow._storage_registry(path)
 
     def _get_file_path(self, path):
         return self._workflow_path(path)
+
+    # Utility functions to return a module file path
+
+    def _module_path(self, base, path):
+        """Return the path to a module file"""
+        folder = f"{base}"
+        module_name = self.config.get("output_namespace", None) if self.config else None
+        folder += f"/{module_name}" if module_name else ""
+        return f"{folder}/{path}"
 
     # File-type specialisations
 
@@ -71,6 +80,10 @@ class Helper:
     def resource(self, relpath):
         """Return the path to a resource file"""
         return self._get_file_path(Path("../resources") / relpath)
+
+    def remote(self, path):
+        """Return the path to a remote file"""
+        return self._get_remote_file_path(path)
 
     def input(self, path, port=None):
         """Return the path to an input file
@@ -109,19 +122,19 @@ class Helper:
         else:
             return f"results/{outdir}"
 
-    def log(self, path):
+    def log(self, path=None):
         """Return the path to a log file"""
-        # if config is loaded, use output_namespace as module name...
-        if self.config:
-            module_name = self.config.get("output_namespace", None)
-            if module_name:
-                return f"logs/{module_name}/{path}"
-        # ...but config does not have to be loaded for log() to be called
-        return f"logs/{path}"
+        path = path if path else "log.txt"
+        return self._module_path("logs", path)
 
     def env(self, path):
         """Return the path to an environment file"""
         return f"envs/{path}"
+
+    def benchmark(self, path=None):
+        """Return the path to a benchmark file"""
+        path = path if path else "benchmark.tsv"
+        return self._module_path("benchmarks", path)
 
     # Parameter indexing
 
@@ -167,7 +180,7 @@ def grapevne_helper(globals_dict):
     globals_dict["params"] = gv.params
 
     try:
-        yield
+        yield gv
     finally:
         del globals_dict["script"]
         del globals_dict["resource"]
@@ -197,6 +210,11 @@ def resource(relpath):
     return _helper.resource(relpath)
 
 
+def remote(path):
+    """Return the path to a remote file"""
+    return _helper.remote(path)
+
+
 def input(path, port=None):
     """Return the path to an input file
 
@@ -212,7 +230,7 @@ def output(path=None):
     return _helper.output(path)
 
 
-def log(path):
+def log(path=None):
     """Return the path to a log file"""
     return _helper.log(path)
 
@@ -220,6 +238,11 @@ def log(path):
 def env(path):
     """Return the path to an environment file"""
     return _helper.env(path)
+
+
+def benchmark(path=None):
+    """Return the path to a benchmark file"""
+    return _helper.benchmark(path)
 
 
 def param(*args):
