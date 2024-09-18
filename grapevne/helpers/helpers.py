@@ -132,12 +132,19 @@ class Helper:
             *args:  The path to the parameter in the configuration
                     Example: params("foo", "bar") will return the value of
                         config["params"]["foo"]["bar"]
+                    You can also use the shorthand params("foo.bar"), so long as a
+                    unique key "foo.bar" does not already exist.
                     If no arguments are provided, return the entire params dictionary
         """
         self._check_config()
         if len(args) == 0:
             return self.config.get("params", {})
         value = self.config.get("params", {})
+        # Check if the argument is a dot-separated string
+        if len(args) == 1:
+            if args[0] not in value:
+                args = args[0].split(".")
+        # Iterate through the arguments
         for arg in args:
             if not isinstance(value, dict):
                 raise ValueError(f"Attempting to index a non-indexable value: {value}")
