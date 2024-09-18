@@ -22,7 +22,7 @@ class Workflow:
 def test_script():
     init()
     with mock.patch(
-        "grapevne.helpers.helpers.Helper._workflow_path",
+        "grapevne.helpers.helpers.HelperBase._get_file_path",
         lambda self, path: Path("workflows") / path,
     ):
         assert script("script.py") == Path("workflows/scripts/script.py")
@@ -31,7 +31,7 @@ def test_script():
 def test_resource():
     init()
     with mock.patch(
-        "grapevne.helpers.helpers.Helper._workflow_path",
+        "grapevne.helpers.helpers.HelperBase._get_file_path",
         lambda self, path: Path("workflows") / path,
     ):
         assert resource("resource.txt") == Path("workflows/../resources/resource.txt")

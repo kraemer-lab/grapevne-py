@@ -39,9 +39,15 @@ pushd workflows/testing/modules/copy_gv_namespace
 ./.test.sh
 popd
 
-# Test Helper as context manager
+# Test Helper as context manager (exposing functions to global namespace)
 echo "Test: modules/copy_gv_context"
 pushd workflows/testing/modules/copy_gv_context
+./.test.sh
+popd
+
+# Test Helper as context manager (returning a context object)
+echo "Test: modules/copy_gv_context_object"
+pushd workflows/testing/modules/copy_gv_context_object
 ./.test.sh
 popd
 

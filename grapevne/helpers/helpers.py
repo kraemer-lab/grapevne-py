@@ -1,5 +1,8 @@
+import logging
+import ensurepip
+import subprocess
+from abc import ABC, abstractmethod
 from pathlib import Path
-from dataclasses import dataclass
 from packaging.version import Version
 from contextlib import contextmanager
 
@@ -11,13 +14,22 @@ except ImportError:
         "This library must be called from within a snakemake environment."
     )
 
+_expose_methods = [
+    "script",
+    "resource",
+    "remote",
+    "input",
+    "output",
+    "log",
+    "env",
+    "benchmark",
+    "param",
+    "params",
+]
 
-# Retain workflow _helper
 
-
-@dataclass
-class Helper:
-    snakemake_version = Version(snakemake.__version__)
+class HelperBase(ABC):
+    """Abstract Base Class (ABC) for helper functions"""
 
     def __init__(self, workflow=None):
         self.workflow = workflow
@@ -31,38 +43,18 @@ class Helper:
         if self.workflow is None:
             raise ValueError("Workflow not loaded")
 
-    # Utility functions to return the workflow file path
+    # Utility functions
 
+    @abstractmethod
     def _workflow_path(self, path):
-        if Helper.snakemake_version < Version("8"):
-            return self._workflow_path_snakemake_7(path)
-        else:
-            return self._workflow_path_snakemake_8(path)
+        pass
 
-    def _workflow_path_snakemake_7(self, path):
-        return snakemake.workflow.srcdir(path)
-
-    def _workflow_path_snakemake_8(self, path):
-        return Path(self.workflow.current_basedir) / path
-
-    # Utility functions to return the remote file path
-
-    def _get_remote_file_path(self, path):
-        if Helper.snakemake_version < Version("8"):
-            return self._get_remote_file_path_snakemake_7(path)
-        else:
-            return self._get_remote_file_path_snakemake_8(path)
-
-    def _get_remote_file_path_snakemake_7(self, path):
-        return snakemake.remote.AUTO.remote(path)
-
-    def _get_remote_file_path_snakemake_8(self, path):
-        return self.workflow._storage_registry(path)
+    @abstractmethod
+    def _get_remote_file_path(self, path, provider=None):
+        pass
 
     def _get_file_path(self, path):
         return self._workflow_path(path)
-
-    # Utility functions to return a module file path
 
     def _module_path(self, base, path):
         """Return the path to a module file"""
@@ -165,30 +157,103 @@ class Helper:
         return self.params(*args)
 
 
+class HelperSnakemake7(HelperBase):
+    """Helper class for Snakemake 7"""
+
+    def __init__(self, workflow=None):
+        super().__init__(workflow)
+
+    # Implementations of abstract methods
+
+    def _workflow_path(self, path):
+        return snakemake.workflow.srcdir(path)
+
+    def _get_remote_file_path(self, path, provider=None):
+        return snakemake.remote.AUTO.remote(path)
+
+
+class HelperSnakemake8(HelperBase):
+    """Helper class for Snakemake 8"""
+
+    def __init__(self, workflow=None):
+        super().__init__(workflow)
+
+    # Utility functions
+
+    def _install_remote_provider(self, path, provider=None):
+        # Determine which storage plugin(s) to install
+        if not provider:  # Infer provider if not explicit
+            provider = path.split(":")[0]
+        install_plugins = []
+        if provider in ["http", "https"]:
+            install_plugins += ["http"]
+        if provider == "s3":
+            install_plugins += ["s3"]
+        if len(install_plugins) == 0:
+            logging.warn(
+                f"Provider '{provider}' not recognised - "
+                "cannot install storage plugin(s)."
+            )
+            return
+        # Install plugins and register with snakemake
+        ensurepip.bootstrap()
+        for plugin in install_plugins:
+            subprocess.run(
+                ["pip", "install", f"snakemake-storage-plugin-{plugin}"], check=True
+            )
+        # Register the plugins with snakemake
+        from snakemake_interface_storage_plugins.registry import (
+            StoragePluginRegistry,
+        )
+
+        StoragePluginRegistry().collect_plugins()
+
+    # Implementations of abstract methods
+
+    def _workflow_path(self, path):
+        return Path(self.workflow.current_basedir) / path
+
+    def _get_remote_file_path(self, path, provider=None):
+        try:
+            return self.workflow.storage_registry(path)
+        except snakemake.exceptions.WorkflowError:
+            logging.warn(
+                "Error loading remote file - "
+                "attempting to install provider and retrying."
+            )
+            self._install_remote_provider(path, provider)
+            return self.workflow.storage_registry(path)
+
+
+class Helper:
+    """Wrapper class to handle different versions of snakemake"""
+
+    def __new__(cls, workflow=None):
+        snakemake_version = Version(snakemake.__version__)
+        if snakemake_version < Version("7"):
+            raise ValueError("GRAPEVNE requires snakemake version 7 or higher")
+        if snakemake_version < Version("8"):
+            return HelperSnakemake7(workflow)
+        else:
+            return HelperSnakemake8(workflow)
+
+
 @contextmanager
 def grapevne_helper(globals_dict):
     workflow = globals_dict.get("workflow", None)
     gv = Helper(workflow)
 
-    globals_dict["script"] = gv.script
-    globals_dict["resource"] = gv.resource
-    globals_dict["input"] = gv.input
-    globals_dict["output"] = gv.output
-    globals_dict["log"] = gv.log
-    globals_dict["env"] = gv.env
-    globals_dict["param"] = gv.param
-    globals_dict["params"] = gv.params
+    # Expose methods from Helper as method in calling (globals) namespace
+    for name in _expose_methods:
+        globals_dict[name] = getattr(gv, name)
 
     try:
+        # Yield the Helper object as a context manager
         yield gv
     finally:
-        del globals_dict["script"]
-        del globals_dict["resource"]
-        del globals_dict["input"]
-        del globals_dict["output"]
-        del globals_dict["log"]
-        del globals_dict["env"]
-        del globals_dict["params"]
+        # Clean up the globals namespace
+        for name in _expose_methods:
+            del globals_dict[name]
 
 
 _helper = Helper()
@@ -197,57 +262,3 @@ _helper = Helper()
 def init(workflow=None):
     _helper.workflow = workflow
     _helper.config = workflow.config if workflow else None
-    _helper.snakemake_version = Version(snakemake.__version__)
-
-
-def script(relpath):
-    """Return the path to a script file"""
-    return _helper.script(relpath)
-
-
-def resource(relpath):
-    """Return the path to a resource file"""
-    return _helper.resource(relpath)
-
-
-def remote(path):
-    """Return the path to a remote file"""
-    return _helper.remote(path)
-
-
-def input(path, port=None):
-    """Return the path to an input file
-
-    Args:
-        path (str): The path to the input file
-        port (str): The name of the input port (optional)
-    """
-    return _helper.input(path, port)
-
-
-def output(path=None):
-    """Return the path to an output file"""
-    return _helper.output(path)
-
-
-def log(path=None):
-    """Return the path to a log file"""
-    return _helper.log(path)
-
-
-def env(path):
-    """Return the path to an environment file"""
-    return _helper.env(path)
-
-
-def benchmark(path=None):
-    """Return the path to a benchmark file"""
-    return _helper.benchmark(path)
-
-
-def param(*args):
-    return _helper.param(*args)
-
-
-def params(*args):
-    return _helper.params(*args)
