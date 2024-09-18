@@ -93,8 +93,12 @@ def test_param():
         }
     )
     init(workflow)
-    assert param("param1") == "value1"
-    assert param("param2", "param3") == "value3"
+    # Single value
+    assert params("param1") == "value1"
+    # Long-form (comma-separated arguments)
+    assert params("param2", "param3") == "value3"
+    # Short-hand (dot-separated string)
+    assert params("param2.param3") == "value3"
 
 
 def test_param_notfound():
@@ -122,8 +126,12 @@ def test_params():
         }
     )
     init(workflow)
+    # Single value
     assert params("param1") == "value1"
+    # Long-form (comma-separated arguments)
     assert params("param2", "param3") == "value3"
+    # Short-hand (dot-separated string)
+    assert params("param2.param3") == "value3"
 
 
 def test_params_notfound():
