@@ -1,5 +1,6 @@
-import subprocess
 import logging
+import ensurepip
+import subprocess
 from abc import ABC, abstractmethod
 from pathlib import Path
 from packaging.version import Version
@@ -188,18 +189,24 @@ class HelperSnakemake8(HelperBase):
             install_plugins += ["http"]
         if provider == "s3":
             install_plugins += ["s3"]
+        if len(install_plugins) == 0:
+            logging.warn(
+                f"Provider '{provider}' not recognised - "
+                "cannot install storage plugin(s)."
+            )
+            return
         # Install plugins and register with snakemake
+        ensurepip.bootstrap()
         for plugin in install_plugins:
             subprocess.run(
                 ["pip", "install", f"snakemake-storage-plugin-{plugin}"], check=True
             )
         # Register the plugins with snakemake
-        if len(install_plugins) > 0:
-            from snakemake_interface_storage_plugins.registry import (
-                StoragePluginRegistry,
-            )
+        from snakemake_interface_storage_plugins.registry import (
+            StoragePluginRegistry,
+        )
 
-            StoragePluginRegistry().collect_plugins()
+        StoragePluginRegistry().collect_plugins()
 
     # Implementations of abstract methods
 
