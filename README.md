@@ -40,7 +40,7 @@ configfile: "config/config.yaml"
 from grapevne_helper import import_grapevne
 
 grapevne = import_grapevne(workflow)
-globals.update(vars(grapevne))
+globals().update(vars(grapevne))
 
 rule all:
     input:
