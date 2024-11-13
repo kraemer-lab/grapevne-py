@@ -1,6 +1,8 @@
+import os
 import logging
 import ensurepip
 import subprocess
+from urllib.parse import urlparse
 from abc import ABC, abstractmethod
 from pathlib import Path
 from packaging.version import Version
@@ -53,8 +55,19 @@ class HelperBase(ABC):
     def _get_remote_file_path(self, path, provider=None):
         pass
 
+    def _get_provider(self, path):
+        parsed = urlparse(path)
+        # We need to account for Windows which returns 'C' for 'C:/
+        if os.path.isabs(path) or os.path.exists(path) or not parsed.scheme:
+            return ''
+        return parsed.scheme
+
     def _get_file_path(self, path):
-        return self._workflow_path(path)
+        path = self._workflow_path(str(path))
+        provider = self._get_provider(path)
+        if provider:
+            return self._get_remote_file_path(path)
+        return path
 
     def _module_path(self, base, path):
         """Return the path to a module file"""
@@ -71,11 +84,11 @@ class HelperBase(ABC):
 
     def resource(self, relpath):
         """Return the path to a resource file"""
-        return self._get_file_path(Path("../resources") / relpath)
+        return self._get_file_path(Path("..") / "resources" / relpath)
 
     def remote(self, path):
         """Return the path to a remote file"""
-        return self._get_remote_file_path(path)
+        return self._get_remote_file_path(str(path))
 
     def input(self, path, port=None):
         """Return the path to an input file
@@ -176,7 +189,8 @@ class HelperSnakemake7(HelperBase):
         return snakemake.workflow.srcdir(path)
 
     def _get_remote_file_path(self, path, provider=None):
-        return snakemake.remote.AUTO.remote(path)
+        from snakemake.remote import AUTO
+        return next(iter(AUTO.remote(path)))
 
 
 class HelperSnakemake8(HelperBase):
@@ -190,7 +204,7 @@ class HelperSnakemake8(HelperBase):
     def _install_remote_provider(self, path, provider=None):
         # Determine which storage plugin(s) to install
         if not provider:  # Infer provider if not explicit
-            provider = path.split(":")[0]
+            provider = self._get_provider(path)
         install_plugins = []
         if provider in ["http", "https"]:
             install_plugins += ["http"]
@@ -217,8 +231,14 @@ class HelperSnakemake8(HelperBase):
 
     # Implementations of abstract methods
 
-    def _workflow_path(self, path):
-        return Path(self.workflow.current_basedir) / path
+    def _workflow_path(self, relpath):
+        basedir = str(self.workflow.current_basedir)
+        provider = self._get_provider(basedir)
+        if provider:
+            path = f"{basedir}/{relpath}"
+        else:
+            path = str(Path(basedir) / relpath)
+        return path.replace('workflow/../', '')
 
     def _get_remote_file_path(self, path, provider=None):
         try:
