@@ -1,3 +1,4 @@
+import os
 import logging
 import ensurepip
 import subprocess
@@ -54,10 +55,17 @@ class HelperBase(ABC):
     def _get_remote_file_path(self, path, provider=None):
         pass
 
+    def _get_provider(self, path):
+        parsed = urlparse(path)
+        # We need to account for Windows which returns 'C' for 'C:/
+        if os.path.isabs(path) or os.path.exists(path) or not parsed.scheme:
+            return ''
+        return parsed.scheme
+
     def _get_file_path(self, path):
         path = self._workflow_path(str(path))
-        parsed = urlparse(path)
-        if parsed.scheme:
+        provider = self._get_provider(path)
+        if provider:
             return self._get_remote_file_path(path)
         return path
 
@@ -196,7 +204,7 @@ class HelperSnakemake8(HelperBase):
     def _install_remote_provider(self, path, provider=None):
         # Determine which storage plugin(s) to install
         if not provider:  # Infer provider if not explicit
-            provider = urlparse(path).scheme
+            provider = self._get_provider(path)
         install_plugins = []
         if provider in ["http", "https"]:
             install_plugins += ["http"]
@@ -225,7 +233,7 @@ class HelperSnakemake8(HelperBase):
 
     def _workflow_path(self, relpath):
         basedir = str(self.workflow.current_basedir)
-        provider = urlparse(basedir).scheme
+        provider = self._get_provider(basedir)
         if provider:
             path = f"{basedir}/{relpath}"
         else:
