@@ -114,6 +114,19 @@ def test_param_notfound():
         param("param2")
 
 
+def test_param_default():
+    workflow = Workflow(
+        {
+            "params": {
+                "param1": "value1",
+            },
+        }
+    )
+    init(workflow)
+    default = "default_value"
+    assert param("param2", default=default) == default
+
+
 def test_params():
     workflow = Workflow(
         {

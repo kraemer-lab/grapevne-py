@@ -90,7 +90,7 @@ class HelperBase(ABC):
         """Return the path to a remote file"""
         return self._get_remote_file_path(str(path))
 
-    def input(self, path, port=None):
+    def input(self, path=None, port=None):
         """Return the path to an input file
 
         Args:
@@ -143,7 +143,7 @@ class HelperBase(ABC):
 
     # Parameter indexing
 
-    def params(self, *args):
+    def params(self, *args, default=None):
         """Return the value of a parameter in the configuration
 
         Args:
@@ -167,14 +167,16 @@ class HelperBase(ABC):
             if not isinstance(value, dict):
                 raise ValueError(f"Attempting to index a non-indexable value: {value}")
             if arg not in value:
+                if default is not None:
+                    return default
                 raise ValueError(f"Parameter not found: {arg}")
             value = value.get(arg, {})
         return value
 
     # Alias function - 'params' is the Snakefile directive, but 'param' is more
     # intuitive and consistent with other helper functions.
-    def param(self, *args):
-        return self.params(*args)
+    def param(self, *args, **kwargs):
+        return self.params(*args, **kwargs)
 
 
 class HelperSnakemake7(HelperBase):
