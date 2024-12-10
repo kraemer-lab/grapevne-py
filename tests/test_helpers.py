@@ -51,7 +51,7 @@ def test_port_spec_str():
     port = "incoming_namespace_1"
     expected_port_spec = [
         {
-            "id": "0",
+            "ref": "in",
             "label": "In",
             "namespace": "incoming_namespace_1",
         },
@@ -67,12 +67,12 @@ def test_port_spec_dict_shorthand():
     }
     expected_port_spec = [
         {
-            "id": "0",
+            "ref": "port1",
             "label": "port1",
             "namespace": "incoming_namespace_1",
         },
         {
-            "id": "1",
+            "ref": "port2",
             "label": "port2",
             "namespace": "incoming_namespace_2",
         },
@@ -83,13 +83,13 @@ def test_port_spec_dict_shorthand():
 def test_port_spec_dict():
     helper = Helper()
     port = {
-        "id": "0",
+        "ref": "port1",
         "label": "port1",
         "namespace": "incoming_namespace_1",
     }
     expected_port_spec = [
         {
-            "id": "0",
+            "ref": "port1",
             "label": "port1",
             "namespace": "incoming_namespace_1",
         },
@@ -101,12 +101,12 @@ def test_port_spec_list():
     helper = Helper()
     expected_port_spec = [
         {
-            "id": "0",
+            "ref": "port1",
             "label": "port1",
             "namespace": "incoming_namespace_1",
         },
         {
-            "id": "1",
+            "ref": "port2",
             "label": "port2",
             "namespace": "incoming_namespace_2",
         },
