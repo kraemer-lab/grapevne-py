@@ -2,12 +2,19 @@ import os
 import logging
 import ensurepip
 import subprocess
+
 from urllib.parse import urlparse
 from abc import ABC, abstractmethod
 from pathlib import Path
 from packaging.version import Version
 from contextlib import contextmanager
 from typing import Union
+from grapevne.utils import (
+    get_ports,
+    get_port_spec,
+    get_namespace,
+    get_port_namespace,
+)
 
 try:
     import snakemake
@@ -77,85 +84,17 @@ class HelperBase(ABC):
         folder += f"/{module_name}" if module_name else ""
         return f"{folder}/{path}"
 
-    def _port_spec(self, port: Union[str, dict, list, None]):
-        """Input port specification
-
-        Utility function to convert shorthand input port specifications to their full
-        format. Always returns a list.
-
-        Port specification:
-            [
-                {
-                    ref: (required; str),       # Port reference (used in Snakefile)
-                    label: (required; str),
-                    namespace: (required; str), # Namespace link (incoming)
-
-                    # Used for composite modules:
-                    mapping: [
-                        {                       #   Target module
-                            module: (str),      #     target module name / reference
-                            port: (str),        #     target port reference
-
-                        },
-                        ...
-                    ],
-                },
-                ...
-            ]
-
-        Shorthand specifications:
-            null    No input ports
-            str     Single input port
-            dict    Multiple or named input ports, with port names as keys and
-                    namespaces as values
-        """
-
-        if port is None:
-            # No input ports (null)
-            return []
-        if isinstance(port, str):
-            # Single input port (str)
-            return [{"ref": "in", "label": "In", "namespace": port}]
-        if isinstance(port, dict):
-            required_keys = ["ref", "label", "namespace"]
-            if all(key in port for key in required_keys):
-                # single dict (new format)
-                return [port]
-            else:
-                return [{"ref": k, "label": k, "namespace": v} for k, v in port.items()]
-        if isinstance(port, list):
-            return port
-        raise ValueError(f"Unknown port specification: {port}")
+    def _get_port_spec(self, port: Union[str, dict, list, None]):
+        return get_port_spec(port)
 
     def _get_ports(self, config):
-        """Get ports specification from config
-
-        Includes a backwards compatibility check for the legacy 'input_namespace'
-        """
-        ports = config.get("ports", None)
-        if ports is None:  # Shorthand / backwards compatibility
-            ports = config.get("input_namespace", None)
-        return self._port_spec(ports)
+        return get_ports(config)
 
     def _get_port_namespace(self, ports, port_ref):
-        """Get the namespace for a given port reference"""
-        for port in ports:
-            if port["ref"] == port_ref:
-                return port["namespace"]
-        raise ValueError(f"Port not found: {port_ref}")
+        return get_port_namespace(ports, port_ref)
 
     def _get_namespace(self):
-        """Return the module's namespace
-
-        Includes a backwards compatibility check for the legacy 'output_namespace'
-        """
-        namespace = None
-        if self.config:
-            namespace = self.config.get("namespace", None)
-            if namespace is None:
-                # Backwards compatibility
-                namespace = self.config.get("output_namespace", None)
-        return namespace
+        return get_namespace(self.config)
 
     # File-type specialisations
 
