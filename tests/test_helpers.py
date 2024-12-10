@@ -11,6 +11,7 @@ from grapevne.helpers import (
 )
 from grapevne.helpers.helpers import (
     Helper,
+    _helper,
 )
 from unittest import mock
 from pathlib import Path
@@ -136,6 +137,37 @@ def test_input_multi():
     init(workflow)
     assert Path(input("infile1.txt", "port1")) == Path("results/in1/infile1.txt")
     assert Path(input("infile2.txt", "port2")) == Path("results/in2/infile2.txt")
+
+
+def test_get_namespace():
+    workflow = Workflow(
+        {
+            "namespace": "namespace1",
+        }
+    )
+    init(workflow)
+    assert _helper._get_namespace() == "namespace1"
+
+
+def test_get_namespace_none():
+    workflow = Workflow(
+        {
+            "no_namespace_given": "namespace1",
+        }
+    )
+    init(workflow)
+    assert _helper._get_namespace() is None
+
+
+def test_get_namespace_legacy():
+    """Legacy 'output_namespace' check"""
+    workflow = Workflow(
+        {
+            "output_namespace": "namespace1",
+        }
+    )
+    init(workflow)
+    assert _helper._get_namespace() == "namespace1"
 
 
 def test_output():
