@@ -73,7 +73,7 @@ class HelperBase(ABC):
     def _module_path(self, base, path):
         """Return the path to a module file"""
         folder = f"{base}"
-        module_name = self.config.get("output_namespace", None) if self.config else None
+        module_name = self._get_namespace()
         folder += f"/{module_name}" if module_name else ""
         return f"{folder}/{path}"
 
@@ -122,16 +122,16 @@ class HelperBase(ABC):
                 # single dict (new format)
                 return [port]
             else:
-                return [
-                    {"ref": k, "label": k, "namespace": v}
-                    for k, v in port.items()
-                ]
+                return [{"ref": k, "label": k, "namespace": v} for k, v in port.items()]
         if isinstance(port, list):
             return port
         raise ValueError(f"Unknown port specification: {port}")
 
     def _get_ports(self, config):
-        """Get ports specification from config"""
+        """Get ports specification from config
+
+        Includes a backwards compatibility check for the legacy 'input_namespace'
+        """
         ports = config.get("ports", None)
         if ports is None:  # Shorthand / backwards compatibility
             ports = config.get("input_namespace", None)
@@ -143,6 +143,19 @@ class HelperBase(ABC):
             if port["ref"] == port_ref:
                 return port["namespace"]
         raise ValueError(f"Port not found: {port_ref}")
+
+    def _get_namespace(self):
+        """Return the module's namespace
+
+        Includes a backwards compatibility check for the legacy 'output_namespace'
+        """
+        namespace = None
+        if self.config:
+            namespace = self.config.get("namespace", None)
+            if namespace is None:
+                # Backwards compatibility
+                namespace = self.config.get("output_namespace", None)
+        return namespace
 
     # File-type specialisations
 
@@ -181,7 +194,7 @@ class HelperBase(ABC):
     def output(self, path=None):
         """Return the path to an output file"""
         self._check_config()
-        outdir = self.config.get("output_namespace", None)
+        outdir = self._get_namespace()
         if not outdir:
             raise ValueError("Output namespace not defined in config")
         if path:
