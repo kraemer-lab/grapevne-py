@@ -9,6 +9,9 @@ from grapevne.helpers import (
     param,
     params,
 )
+from grapevne.helpers.helpers import (
+    Helper,
+)
 from unittest import mock
 from pathlib import Path
 import pytest
@@ -35,6 +38,80 @@ def test_resource():
         lambda self, path: Path("workflows") / path,
     ):
         assert resource("resource.txt") == Path("workflows/../resources/resource.txt")
+
+
+def test_port_spec_null():
+    helper = Helper()
+    port = None
+    assert helper._port_spec(port) == []
+
+
+def test_port_spec_str():
+    helper = Helper()
+    port = "incoming_namespace_1"
+    expected_port_spec = [
+        {
+            "id": "0",
+            "label": "In",
+            "namespace": "incoming_namespace_1",
+        },
+    ]
+    assert helper._port_spec(port) == expected_port_spec
+
+
+def test_port_spec_dict_shorthand():
+    helper = Helper()
+    port = {
+        "port1": "incoming_namespace_1",
+        "port2": "incoming_namespace_2",
+    }
+    expected_port_spec = [
+        {
+            "id": "0",
+            "label": "port1",
+            "namespace": "incoming_namespace_1",
+        },
+        {
+            "id": "1",
+            "label": "port2",
+            "namespace": "incoming_namespace_2",
+        },
+    ]
+    assert helper._port_spec(port) == expected_port_spec
+
+
+def test_port_spec_dict():
+    helper = Helper()
+    port = {
+        "id": "0",
+        "label": "port1",
+        "namespace": "incoming_namespace_1",
+    }
+    expected_port_spec = [
+        {
+            "id": "0",
+            "label": "port1",
+            "namespace": "incoming_namespace_1",
+        },
+    ]
+    assert helper._port_spec(port) == expected_port_spec
+
+
+def test_port_spec_list():
+    helper = Helper()
+    expected_port_spec = [
+        {
+            "id": "0",
+            "label": "port1",
+            "namespace": "incoming_namespace_1",
+        },
+        {
+            "id": "1",
+            "label": "port2",
+            "namespace": "incoming_namespace_2",
+        },
+    ]
+    assert helper._port_spec(expected_port_spec) == expected_port_spec
 
 
 def test_input_single():

@@ -59,7 +59,7 @@ class HelperBase(ABC):
         parsed = urlparse(path)
         # We need to account for Windows which returns 'C' for 'C:/
         if os.path.isabs(path) or os.path.exists(path) or not parsed.scheme:
-            return ''
+            return ""
         return parsed.scheme
 
     def _get_file_path(self, path):
@@ -75,6 +75,59 @@ class HelperBase(ABC):
         module_name = self.config.get("output_namespace", None) if self.config else None
         folder += f"/{module_name}" if module_name else ""
         return f"{folder}/{path}"
+
+    def _port_spec(self, port: str | dict | list | None):
+        """Input port specification
+
+        Utility function to convert shorthand input port specifications to their full
+        format. Always returns a list.
+
+        Port specification:
+            [
+                {
+                    id: (required; str),
+                    label: (required; str),
+                    namespace: (required; str), # Namespace link (incoming)
+
+                    # Used for composite modules:
+                    mapping: [
+                        {                       #   Target module
+                            module: (str),      #     target module name / ID
+                            port: (str),        #     target port id
+
+                        },
+                        ...
+                    ],
+                },
+                ...
+            ]
+
+        Shorthand specifications:
+            null    No input ports
+            str     Single input port
+            dict    Multiple or named input ports, with port names as keys and
+                    namespaces as values
+        """
+
+        if port is None:
+            # No input ports (null)
+            return []
+        if isinstance(port, str):
+            # Single input port (str)
+            return [{"id": "0", "label": "In", "namespace": port}]
+        if isinstance(port, dict):
+            required_keys = ["id", "label", "namespace"]
+            if all(key in port for key in required_keys):
+                # single dict (new format)
+                return [port]
+            else:
+                return [
+                    {"id": str(ix), "label": k, "namespace": v}
+                    for ix, (k, v) in enumerate(port.items())
+                ]
+        if isinstance(port, list):
+            return port
+        raise ValueError(f"Unknown port specification: {port}")
 
     # File-type specialisations
 
@@ -192,6 +245,7 @@ class HelperSnakemake7(HelperBase):
 
     def _get_remote_file_path(self, path, provider=None):
         from snakemake.remote import AUTO
+
         return next(iter(AUTO.remote(path)))
 
 
@@ -240,7 +294,7 @@ class HelperSnakemake8(HelperBase):
             path = f"{basedir}/{relpath}"
         else:
             path = str(Path(basedir) / relpath)
-        return path.replace('workflow/../', '')
+        return path.replace("workflow/../", "")
 
     def _get_remote_file_path(self, path, provider=None):
         try:
