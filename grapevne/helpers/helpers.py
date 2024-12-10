@@ -7,6 +7,7 @@ from abc import ABC, abstractmethod
 from pathlib import Path
 from packaging.version import Version
 from contextlib import contextmanager
+from typing import Union
 
 try:
     import snakemake
@@ -76,7 +77,7 @@ class HelperBase(ABC):
         folder += f"/{module_name}" if module_name else ""
         return f"{folder}/{path}"
 
-    def _port_spec(self, port: str | dict | list | None):
+    def _port_spec(self, port: Union[str, dict, list, None]):
         """Input port specification
 
         Utility function to convert shorthand input port specifications to their full
