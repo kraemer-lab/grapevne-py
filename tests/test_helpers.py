@@ -41,32 +41,32 @@ def test_resource():
         assert resource("resource.txt") == Path("workflows/../resources/resource.txt")
 
 
-def test_port_spec_null():
+def test_get_port_spec_null():
     helper = Helper()
     port = None
-    assert helper._port_spec(port) == []
+    assert helper._get_port_spec(port) == []
 
 
-def test_port_spec_str():
+def test_get_port_spec_str():
     helper = Helper()
     port = "incoming_namespace_1"
-    expected_port_spec = [
+    expected_get_port_spec = [
         {
             "ref": "in",
             "label": "In",
             "namespace": "incoming_namespace_1",
         },
     ]
-    assert helper._port_spec(port) == expected_port_spec
+    assert helper._get_port_spec(port) == expected_get_port_spec
 
 
-def test_port_spec_dict_shorthand():
+def test_get_port_spec_dict_shorthand():
     helper = Helper()
     port = {
         "port1": "incoming_namespace_1",
         "port2": "incoming_namespace_2",
     }
-    expected_port_spec = [
+    expected_get_port_spec = [
         {
             "ref": "port1",
             "label": "port1",
@@ -78,29 +78,29 @@ def test_port_spec_dict_shorthand():
             "namespace": "incoming_namespace_2",
         },
     ]
-    assert helper._port_spec(port) == expected_port_spec
+    assert helper._get_port_spec(port) == expected_get_port_spec
 
 
-def test_port_spec_dict():
+def test_get_port_spec_dict():
     helper = Helper()
     port = {
         "ref": "port1",
         "label": "port1",
         "namespace": "incoming_namespace_1",
     }
-    expected_port_spec = [
+    expected_get_port_spec = [
         {
             "ref": "port1",
             "label": "port1",
             "namespace": "incoming_namespace_1",
         },
     ]
-    assert helper._port_spec(port) == expected_port_spec
+    assert helper._get_port_spec(port) == expected_get_port_spec
 
 
-def test_port_spec_list():
+def test_get_port_spec_list():
     helper = Helper()
-    expected_port_spec = [
+    expected_get_port_spec = [
         {
             "ref": "port1",
             "label": "port1",
@@ -112,7 +112,7 @@ def test_port_spec_list():
             "namespace": "incoming_namespace_2",
         },
     ]
-    assert helper._port_spec(expected_port_spec) == expected_port_spec
+    assert helper._get_port_spec(expected_get_port_spec) == expected_get_port_spec
 
 
 def test_input_single():
