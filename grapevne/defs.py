@@ -49,7 +49,7 @@ class Module:
         docstring: str = "",  # passthrough (unused in builds)
         # Backwards compatiblity list
         input_namespace: Namespace = None,
-        output_namespace: str | None = None,
+        output_namespace: Union[str, None] = None,
     ):
         """Initialise a Node object, the parent class for Modules
 
@@ -144,7 +144,7 @@ def get_port_spec(port: Union[str, dict, list, None]) -> Port:
         for k, v in port.items():
             p = {
                 "ref": k,
-                "label": k,
+                "label": "In" if k == "in" else k,
                 "namespace": v,
             }
             # Check for old-form node mapping and convert to new form
