@@ -123,8 +123,10 @@ class HelperBase(ABC):
             raise ValueError("No input ports defined in config")
         if port:  # port ref specified
             indir = self._get_port_namespace(ports, port)
-        if len(ports) == 1:
+        elif len(ports) == 1:
             indir = ports[0]["namespace"]
+        else:
+            raise Exception(f"Port not specified for input: {path} {port}")
         if path:
             return f"results/{indir}/{path}"
         else:
